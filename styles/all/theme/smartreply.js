@@ -54,6 +54,71 @@ document.addEventListener('DOMContentLoaded', function () {
     var contextMode = ensureHiddenInput('sr_context_mode');
     var originalTextareaPlaceholder = textarea.getAttribute('placeholder') || '';
 
+    var mobileActionsMedia = null;
+
+    try {
+        mobileActionsMedia = window.matchMedia('(max-width: 700px)');
+    } catch (error) {
+        mobileActionsMedia = null;
+    }
+
+    function isMobileActionsLayout() {
+        if (mobileActionsMedia) {
+            return !!mobileActionsMedia.matches;
+        }
+        return window.innerWidth <= 700;
+    }
+
+    function syncMobilePostActions() {
+        var isMobile = isMobileActionsLayout();
+
+        document.querySelectorAll('.postbody').forEach(function (postBody) {
+            var postButtons = postBody.querySelector('.post-buttons');
+            if (!postButtons) {
+                return;
+            }
+
+            var originalButtons = postButtons.querySelectorAll('.smartreply-post-button > a');
+            var mobileRow = postBody.querySelector('.smartreply-mobile-actions');
+
+            if (!originalButtons.length) {
+                if (mobileRow) {
+                    mobileRow.remove();
+                }
+                return;
+            }
+
+            if (!isMobile) {
+                if (mobileRow) {
+                    mobileRow.remove();
+                }
+                return;
+            }
+
+            if (!mobileRow) {
+                mobileRow = document.createElement('div');
+                mobileRow.className = 'smartreply-mobile-actions';
+                postButtons.insertAdjacentElement('afterend', mobileRow);
+            }
+
+            mobileRow.textContent = '';
+
+            originalButtons.forEach(function (button, index) {
+                var proxy = button.cloneNode(true);
+                proxy.classList.add('smartreply-mobile-proxy');
+                proxy.removeAttribute('aria-pressed');
+                proxy.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    button.click();
+                });
+                if (!proxy.id) {
+                    proxy.id = 'smartreply-mobile-proxy-' + (button.dataset.postId || '0') + '-' + index;
+                }
+                mobileRow.appendChild(proxy);
+            });
+        });
+    }
+
     form.classList.add('smartreply-form');
     form.id = form.id || 'smartreply-composer';
     form.classList.add(startOpen ? 'smartreply-expanded' : 'smartreply-collapsed');
@@ -1952,6 +2017,14 @@ document.addEventListener('DOMContentLoaded', function () {
             hideColorPalette();
         }
     });
+
+    syncMobilePostActions();
+
+    if (mobileActionsMedia && typeof mobileActionsMedia.addEventListener === 'function') {
+        mobileActionsMedia.addEventListener('change', syncMobilePostActions);
+    } else {
+        window.addEventListener('resize', syncMobilePostActions);
+    }
 
     document.querySelectorAll('.smartreply-trigger').forEach(function (button) {
         button.addEventListener('click', function (event) {

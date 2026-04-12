@@ -506,6 +506,20 @@
     min-height: 28px;
 }
 
+
+.smartreply-mobile-actions {
+    display: none;
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.smartreply-mobile-actions .smartreply-post-reply-btn {
+    min-height: 28px;
+}
+
 .smartreply-toolbar {
     display: flex;
     gap: 10px;
@@ -889,20 +903,28 @@
         display: none;
     }
 
-    .smartreply-post-label {
-        display: none;
+    .postbody .post-buttons > .smartreply-post-button {
+        display: none !important;
     }
 
-    .smartreply-action-reply,
-    .smartreply-action-quote,
-    .smartreply-action-mention {
-        min-width: 32px;
-        width: 32px;
-        padding: 0;
-        gap: 0;
+    .smartreply-mobile-actions {
+        display: flex;
     }
 
-    .smartreply-post-reply-btn .icon {
+    .smartreply-mobile-actions .smartreply-post-label {
+        display: inline-flex;
+    }
+
+    .smartreply-mobile-actions .smartreply-action-reply,
+    .smartreply-mobile-actions .smartreply-action-quote,
+    .smartreply-mobile-actions .smartreply-action-mention {
+        min-width: 0;
+        width: auto;
+        padding: 0 10px;
+        gap: 6px;
+    }
+
+    .smartreply-mobile-actions .smartreply-post-reply-btn .icon {
         margin-right: 0;
     }
 }
