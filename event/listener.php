@@ -9,6 +9,7 @@ namespace mundophpbb\smartreply\event;
 use phpbb\auth\auth;
 use phpbb\config\config;
 use phpbb\controller\helper;
+use phpbb\db\driver\driver_interface;
 use phpbb\template\template;
 use phpbb\user;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -30,19 +31,23 @@ class listener implements EventSubscriberInterface
     /** @var helper */
     protected $helper;
 
+    /** @var driver_interface */
+    protected $db;
+
     /** @var string */
     protected $root_path;
 
     /** @var string */
     protected $php_ext;
 
-    public function __construct(config $config, template $template, user $user, auth $auth, helper $helper, $root_path, $php_ext)
+    public function __construct(config $config, template $template, user $user, auth $auth, helper $helper, driver_interface $db, $root_path, $php_ext)
     {
         $this->config = $config;
         $this->template = $template;
         $this->user = $user;
         $this->auth = $auth;
         $this->helper = $helper;
+        $this->db = $db;
         $this->root_path = $root_path;
         $this->php_ext = $php_ext;
     }
@@ -87,6 +92,7 @@ class listener implements EventSubscriberInterface
             'SMARTREPLY_TOPIC_ID' => (int) $topic_data['topic_id'],
             'SMARTREPLY_FULL_EDITOR_URL' => append_sid("{$this->root_path}posting.{$this->php_ext}", 'mode=reply&f=' . $forum_id . '&t=' . (int) $topic_data['topic_id']),
             'SMARTREPLY_TEMPLATES_JSON' => $enabled ? json_encode($this->quick_templates($forum_id), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) : '[]',
+            'SMARTREPLY_SMILIES_JSON' => $enabled ? json_encode($this->posting_smilies(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) : '[]',
         ]);
     }
 
@@ -216,6 +222,53 @@ class listener implements EventSubscriberInterface
     {
         $raw = isset($this->config['mundophpbb_smartreply_templates']) ? trim((string) $this->config['mundophpbb_smartreply_templates']) : '';
         return $this->parse_global_templates($raw);
+    }
+
+
+    protected function posting_smilies()
+    {
+        if (!defined('SMILIES_TABLE'))
+        {
+            return [];
+        }
+
+        $smilies = [];
+        $seen_codes = [];
+        $seen_files = [];
+        $smilies_path = isset($this->config['smilies_path']) ? trim((string) $this->config['smilies_path'], '/') : 'images/smilies';
+
+        $sql = 'SELECT code, emotion, smiley_url, smiley_width, smiley_height
+            FROM ' . SMILIES_TABLE . '
+            WHERE display_on_posting = 1
+            ORDER BY smiley_order ASC';
+        $result = $this->db->sql_query($sql);
+
+        while (($row = $this->db->sql_fetchrow($result)) && count($smilies) < 80)
+        {
+            $code = trim((string) $row['code']);
+            $file = trim((string) $row['smiley_url']);
+
+            $file_key = strtolower($file);
+            $code_key = strtolower($code);
+
+            if ($code === '' || $file === '' || isset($seen_codes[$code_key]) || isset($seen_files[$file_key]))
+            {
+                continue;
+            }
+
+            $seen_codes[$code_key] = true;
+            $seen_files[$file_key] = true;
+            $smilies[] = [
+                'code' => $code,
+                'emotion' => (string) $row['emotion'],
+                'url' => $this->root_path . $smilies_path . '/' . $file,
+                'width' => (int) $row['smiley_width'],
+                'height' => (int) $row['smiley_height'],
+            ];
+        }
+        $this->db->sql_freeresult($result);
+
+        return $smilies;
     }
 
     protected function forum_quick_templates($forum_id)

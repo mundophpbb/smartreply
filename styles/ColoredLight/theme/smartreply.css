@@ -14,6 +14,7 @@
 .smartreply-templates,
 .smartreply-toolbar,
 .smartreply-color-palette,
+.smartreply-smilies,
 .smartreply-preview {
     margin: 8px 0;
     border: 1px solid rgba(0, 0, 0, 0.12);
@@ -694,6 +695,63 @@
     min-height: 28px;
 }
 
+
+.smartreply-editor-grid {
+    display: block;
+}
+
+.smartreply-editor-grid > textarea[name="message"] {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.smartreply-editor-grid-smilies-open {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 220px);
+    gap: 10px;
+    align-items: start;
+}
+
+.smartreply-editor-grid-smilies-open > .smartreply-smilies {
+    margin: 0;
+    max-height: 220px;
+    overflow: auto;
+}
+
+.smartreply-smilies {
+    margin-top: -2px;
+}
+
+.smartreply-smilies-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.smartreply-smilies-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.smartreply-smilies-empty {
+    font-size: 0.9em;
+    opacity: 0.86;
+}
+
+.smartreply-smiley-option {
+    min-width: 30px;
+    width: 30px;
+    min-height: 30px;
+    padding: 0;
+}
+
+.smartreply-smiley-option img,
+.smartreply-preview-smiley {
+    max-width: 22px;
+    max-height: 22px;
+    vertical-align: text-bottom;
+}
+
 .smartreply-color-open .smartreply-toolbar-icon-btn[title] {
     position: relative;
 }
@@ -857,6 +915,15 @@
 }
 
 @media (max-width: 700px) {
+    .smartreply-editor-grid-smilies-open {
+        display: block;
+    }
+
+    .smartreply-editor-grid-smilies-open > .smartreply-smilies {
+        margin-top: 8px;
+        max-height: none;
+    }
+
     .smartreply-context {
         align-items: flex-start;
         gap: 7px;

@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var previewVisible = false;
     var toolbarExpanded = !compactToolbar;
     var mentionState = { active: false, start: 0, end: 0, query: '', items: [], index: 0 };
+    var smilies = [];
     var prefersReducedMotion = false;
     var lastMeasuredTextareaHeight = Math.round(textarea.offsetHeight || 0);
 
@@ -192,6 +193,14 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div class="smartreply-preview-title"></div>' +
         '<div class="smartreply-preview-body"></div>';
 
+    var smiliesBox = document.createElement('div');
+    smiliesBox.className = 'smartreply-smilies';
+    smiliesBox.hidden = true;
+    smiliesBox.innerHTML = '' +
+        '<div class="smartreply-smilies-title"></div>' +
+        '<div class="smartreply-smilies-list"></div>' +
+        '<div class="smartreply-smilies-empty"></div>';
+
     var mentionBox = document.createElement('div');
     mentionBox.className = 'smartreply-mentions';
     mentionBox.hidden = true;
@@ -200,22 +209,30 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div class="smartreply-mentions-list"></div>' +
         '<div class="smartreply-mentions-empty"></div>';
 
-    textarea.parentNode.insertBefore(draftBox, textarea);
-    textarea.parentNode.insertBefore(contextBox, textarea);
-    textarea.parentNode.insertBefore(templateBox, textarea);
-    textarea.parentNode.insertBefore(toolbarBox, textarea);
-    textarea.parentNode.insertBefore(colorPaletteBox, textarea);
-    textarea.parentNode.insertBefore(mentionBox, textarea);
-    if (textarea.nextSibling) {
-        textarea.parentNode.insertBefore(helper, textarea.nextSibling);
+    var textareaParent = textarea.parentNode;
+    var editorGrid = document.createElement('div');
+    editorGrid.className = 'smartreply-editor-grid';
+
+    textareaParent.insertBefore(draftBox, textarea);
+    textareaParent.insertBefore(contextBox, textarea);
+    textareaParent.insertBefore(templateBox, textarea);
+    textareaParent.insertBefore(toolbarBox, textarea);
+    textareaParent.insertBefore(colorPaletteBox, textarea);
+    textareaParent.insertBefore(mentionBox, textarea);
+    textareaParent.insertBefore(editorGrid, textarea);
+    editorGrid.appendChild(textarea);
+    editorGrid.appendChild(smiliesBox);
+
+    if (editorGrid.nextSibling) {
+        textareaParent.insertBefore(helper, editorGrid.nextSibling);
         if (helper.nextSibling) {
-            textarea.parentNode.insertBefore(previewBox, helper.nextSibling);
+            textareaParent.insertBefore(previewBox, helper.nextSibling);
         } else {
-            textarea.parentNode.appendChild(previewBox);
+            textareaParent.appendChild(previewBox);
         }
     } else {
-        textarea.parentNode.appendChild(helper);
-        textarea.parentNode.appendChild(previewBox);
+        textareaParent.appendChild(helper);
+        textareaParent.appendChild(previewBox);
     }
 
     var contextIconEl = contextBox.querySelector('.smartreply-context-icon');
@@ -246,6 +263,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var toolbarToggle = null;
     var previewTitle = previewBox.querySelector('.smartreply-preview-title');
     var previewBody = previewBox.querySelector('.smartreply-preview-body');
+    var smiliesTitle = smiliesBox.querySelector('.smartreply-smilies-title');
+    var smiliesList = smiliesBox.querySelector('.smartreply-smilies-list');
+    var smiliesEmpty = smiliesBox.querySelector('.smartreply-smilies-empty');
     var mentionTitle = mentionBox.querySelector('.smartreply-mentions-title');
     var mentionList = mentionBox.querySelector('.smartreply-mentions-list');
     var mentionEmpty = mentionBox.querySelector('.smartreply-mentions-empty');
@@ -429,6 +449,8 @@ document.addEventListener('DOMContentLoaded', function () {
     toolbarTitle.textContent = '';
     toolbarTitle.hidden = true;
     colorTitle.textContent = config.dataset.labelColorPalette || (config.dataset.labelColor || 'Color');
+    smiliesTitle.textContent = config.dataset.labelSmilies || 'Smilies';
+    smiliesEmpty.textContent = config.dataset.labelSmiliesEmpty || 'No smilies are available for quick reply.';
     previewTitle.textContent = config.dataset.labelPreview || 'Preview';
     previewToggle.textContent = config.dataset.labelShowPreview || 'Show preview';
     var shortcutsHintText = config.dataset.labelShortcutsHint || 'Ctrl/Cmd+B Bold · Ctrl/Cmd+I Italic · Ctrl/Cmd+U Underline · Ctrl/Cmd+Shift+M Mention · Ctrl/Cmd+Shift+P Preview · Ctrl/Cmd+Enter Send · Esc Cancel reply to post';
@@ -905,6 +927,7 @@ document.addEventListener('DOMContentLoaded', function () {
         textarea.value = '';
         hideMentionBox();
         hideColorPalette();
+        hideSmilies();
         expandComposer(true);
         textarea.focus();
         updatePreview();
@@ -1065,6 +1088,99 @@ document.addEventListener('DOMContentLoaded', function () {
         return users.sort(function (a, b) {
             return a.username.localeCompare(b.username);
         });
+    }
+
+    function parseSmilies() {
+        var node = document.getElementById('smartreply-smilies-data');
+        if (!node) {
+            return [];
+        }
+        try {
+            var parsed = JSON.parse(node.textContent || '[]');
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+            var seenCodes = Object.create(null);
+            var seenUrls = Object.create(null);
+            return parsed.filter(function (entry) {
+                var codeKey;
+                var urlKey;
+
+                if (!entry || !entry.code || !entry.url) {
+                    return false;
+                }
+
+                codeKey = String(entry.code).toLowerCase();
+                urlKey = String(entry.url).toLowerCase();
+
+                if (seenCodes[codeKey] || seenUrls[urlKey]) {
+                    return false;
+                }
+
+                seenCodes[codeKey] = true;
+                seenUrls[urlKey] = true;
+                return true;
+            });
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function hideSmilies() {
+        smiliesBox.hidden = true;
+        toolbarBox.classList.remove('smartreply-smilies-open');
+        editorGrid.classList.remove('smartreply-editor-grid-smilies-open');
+    }
+
+    function insertSmiley(code) {
+        if (!code) {
+            return;
+        }
+        insertAtCursor(code);
+        hideSmilies();
+    }
+
+    function renderSmilies() {
+        smiliesList.innerHTML = '';
+        smiliesEmpty.hidden = smilies.length > 0;
+
+        smilies.forEach(function (entry) {
+            var button = document.createElement('button');
+            var label = entry.emotion || entry.code;
+            var width = parseInt(entry.width, 10) || 0;
+            var height = parseInt(entry.height, 10) || 0;
+            var sizeAttrs = '';
+
+            if (width > 0) {
+                sizeAttrs += ' width="' + width + '"';
+            }
+            if (height > 0) {
+                sizeAttrs += ' height="' + height + '"';
+            }
+
+            button.type = 'button';
+            button.className = 'button button-icon-only smartreply-btn smartreply-smiley-option';
+            button.setAttribute('title', label + ' ' + entry.code);
+            button.setAttribute('aria-label', label + ' ' + entry.code);
+            button.innerHTML = '<img src="' + escapeHtml(entry.url) + '" alt="' + escapeHtml(entry.code) + '"' + sizeAttrs + ' loading="lazy">';
+            button.addEventListener('click', function () {
+                insertSmiley(entry.code);
+            });
+            smiliesList.appendChild(button);
+        });
+    }
+
+    function toggleSmilies() {
+        var willOpen = smiliesBox.hidden;
+        if (!willOpen) {
+            hideSmilies();
+            return;
+        }
+        hideColorPalette();
+        renderSmilies();
+        smiliesBox.hidden = false;
+        toolbarBox.classList.add('smartreply-smilies-open');
+        editorGrid.classList.add('smartreply-editor-grid-smilies-open');
     }
 
     function hideMentionBox() {
@@ -1323,6 +1439,7 @@ document.addEventListener('DOMContentLoaded', function () {
             hideColorPalette();
             return;
         }
+        hideSmilies();
         buildColorPalette();
         colorPaletteBox.hidden = false;
         toolbarBox.classList.add('smartreply-color-open');
@@ -1357,6 +1474,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 hideMentionBox();
                 hideColorPalette();
+                hideSmilies();
             }
             return;
         }
@@ -1458,6 +1576,7 @@ document.addEventListener('DOMContentLoaded', function () {
             { label: config.dataset.labelUrl || 'URL', fa: 'fa-link', action: function () { wrapSelection('[url]', '[/url]', 'https://'); } },
             { label: config.dataset.labelList || 'List', fa: 'fa-list-ul', action: function () { insertAtCursor('[list]\n[*] Item 1\n[*] Item 2\n[/list]'); } },
             { label: config.dataset.labelColor || 'Color', fa: 'fa-tint', action: toggleColorPalette },
+            { label: config.dataset.labelSmilies || 'Smilies', fa: 'fa-smile-o', action: toggleSmilies },
             { label: config.dataset.labelMention || 'Mention', fa: 'fa-at', action: function () { insertAtCursor('@'); detectMentionQuery(); } }
         ];
 
@@ -1786,6 +1905,44 @@ document.addEventListener('DOMContentLoaded', function () {
         return text;
     }
 
+    function escapeRegex(text) {
+        return String(text || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function renderSmiliesInPreview(text) {
+        if (!smilies.length) {
+            return text;
+        }
+
+        var orderedSmilies = smilies.slice().sort(function (a, b) {
+            return String(b.code || '').length - String(a.code || '').length;
+        });
+
+        return String(text || '').split(/(<[^>]+>)/g).map(function (segment) {
+            if (!segment || segment.charAt(0) === '<') {
+                return segment;
+            }
+
+            orderedSmilies.forEach(function (entry) {
+                if (!entry || !entry.code || !entry.url) {
+                    return;
+                }
+                var width = parseInt(entry.width, 10) || 0;
+                var height = parseInt(entry.height, 10) || 0;
+                var sizeAttrs = '';
+                if (width > 0) {
+                    sizeAttrs += ' width="' + width + '"';
+                }
+                if (height > 0) {
+                    sizeAttrs += ' height="' + height + '"';
+                }
+                var image = '<img class="smartreply-preview-smiley" src="' + escapeHtml(entry.url) + '" alt="' + escapeHtml(entry.code) + '" title="' + escapeHtml(entry.emotion || entry.code) + '"' + sizeAttrs + ' loading="lazy">';
+                segment = segment.replace(new RegExp(escapeRegex(entry.code), 'g'), image);
+            });
+            return segment;
+        }).join('');
+    }
+
     function renderMentions(text) {
         return text.replace(/(^|[\s>(])@([A-Za-z0-9_.\-]{2,32})/g, function (match, prefix, username) {
             return prefix + '<span class="smartreply-preview-mention">@' + username + '</span>';
@@ -1916,6 +2073,7 @@ document.addEventListener('DOMContentLoaded', function () {
         output = replaceSimplePair(output, 'u', '<span style="text-decoration: underline;">', '</span>');
         output = replaceSimplePair(output, 's', '<span style="text-decoration: line-through;">', '</span>');
         output = renderMentions(output);
+        output = renderSmiliesInPreview(output);
         output = output.replace(/\n/g, '<br>');
 
         return output;
@@ -2094,6 +2252,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     buildColorPalette();
+    smilies = parseSmilies();
     buildToolbar();
     renderTemplates();
     applyRememberedTextareaHeight(false);
