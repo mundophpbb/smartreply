@@ -3,8 +3,8 @@
     "type": "phpbb-extension",
     "description": "Progressive and contextual quick reply enhancer for phpBB.",
     "homepage": "https://github.com/mundophpbb/smartreply",
-    "version": "1.17.7",
-    "time": "2026-03-29",
+    "version": "1.17.8",
+    "time": "2026-05-06",
     "license": "GPL-2.0-only",
     "authors": [
         {

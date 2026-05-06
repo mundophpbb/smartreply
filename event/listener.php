@@ -85,6 +85,7 @@ class listener implements EventSubscriberInterface
             'S_SMARTREPLY_SHOW_SNIPPET' => $enabled && !empty($this->config['mundophpbb_smartreply_context_snippet']),
             'S_SMARTREPLY_START_OPEN' => $enabled && !empty($this->config['mundophpbb_smartreply_start_open']),
             'S_SMARTREPLY_PERSIST_CONTEXT' => $enabled && !empty($this->config['mundophpbb_smartreply_persist_context']),
+            'S_SMARTREPLY_CONTEXT_REPLY_ENABLED' => $enabled && (!isset($this->config['mundophpbb_smartreply_enable_context_reply']) || !empty($this->config['mundophpbb_smartreply_enable_context_reply'])),
             'S_SMARTREPLY_COMPACT_TOOLBAR' => $enabled && !empty($this->config['mundophpbb_smartreply_compact_toolbar']),
             'S_SMARTREPLY_QUICK_QUOTE_ENABLED' => $enabled && (!isset($this->config['mundophpbb_smartreply_enable_quick_quote']) || !empty($this->config['mundophpbb_smartreply_enable_quick_quote'])),
             'S_SMARTREPLY_MENTION_BUTTON_ENABLED' => $enabled && (!isset($this->config['mundophpbb_smartreply_enable_mention_button']) || !empty($this->config['mundophpbb_smartreply_enable_mention_button'])),

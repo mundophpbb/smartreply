@@ -60,6 +60,7 @@ class main_module
             $config->set('mundophpbb_smartreply_context_snippet', $request->variable('mundophpbb_smartreply_context_snippet', 1));
             $config->set('mundophpbb_smartreply_start_open', $request->variable('mundophpbb_smartreply_start_open', 0));
             $config->set('mundophpbb_smartreply_persist_context', $request->variable('mundophpbb_smartreply_persist_context', 0));
+            $config->set('mundophpbb_smartreply_enable_context_reply', $request->variable('mundophpbb_smartreply_enable_context_reply', 1));
             $config->set('mundophpbb_smartreply_compact_toolbar', $request->variable('mundophpbb_smartreply_compact_toolbar', 1));
             $config->set('mundophpbb_smartreply_enable_quick_quote', $request->variable('mundophpbb_smartreply_enable_quick_quote', 1));
             $config->set('mundophpbb_smartreply_enable_mention_button', $request->variable('mundophpbb_smartreply_enable_mention_button', 1));
@@ -80,6 +81,7 @@ class main_module
             'SMARTREPLY_CONTEXT_SNIPPET' => (int) $config['mundophpbb_smartreply_context_snippet'],
             'SMARTREPLY_START_OPEN' => (int) $config['mundophpbb_smartreply_start_open'],
             'SMARTREPLY_PERSIST_CONTEXT' => (int) $config['mundophpbb_smartreply_persist_context'],
+            'SMARTREPLY_ENABLE_CONTEXT_REPLY' => (int) (isset($config['mundophpbb_smartreply_enable_context_reply']) ? $config['mundophpbb_smartreply_enable_context_reply'] : 1),
             'SMARTREPLY_COMPACT_TOOLBAR' => (int) (isset($config['mundophpbb_smartreply_compact_toolbar']) ? $config['mundophpbb_smartreply_compact_toolbar'] : 1),
             'SMARTREPLY_ENABLE_QUICK_QUOTE' => (int) (isset($config['mundophpbb_smartreply_enable_quick_quote']) ? $config['mundophpbb_smartreply_enable_quick_quote'] : 1),
             'SMARTREPLY_ENABLE_MENTION_BUTTON' => (int) (isset($config['mundophpbb_smartreply_enable_mention_button']) ? $config['mundophpbb_smartreply_enable_mention_button'] : 1),
