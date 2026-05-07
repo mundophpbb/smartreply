@@ -1136,7 +1136,34 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!code) {
             return;
         }
-        insertAtCursor(code);
+
+        var start = textarea.selectionStart || 0;
+        var end = textarea.selectionEnd || 0;
+        var current = textarea.value || '';
+        var before = current.substring(0, start);
+        var after = current.substring(end);
+        var needsSpacingBefore = before.length && !/\s$/.test(before);
+        var needsSpacingAfter = after.length && !/^\s/.test(after);
+        var insert = code;
+
+        if (needsSpacingBefore) {
+            insert = ' ' + insert;
+        }
+        if (needsSpacingAfter) {
+            insert = insert + ' ';
+        }
+
+        textarea.value = before + insert + after;
+
+        var caret = before.length + insert.length;
+        if (typeof textarea.setSelectionRange === 'function') {
+            textarea.setSelectionRange(caret, caret);
+        }
+
+        expandComposer(true);
+        textarea.focus();
+        updatePreview();
+        persistDraft();
         hideSmilies();
     }
 
