@@ -319,18 +319,19 @@ document.addEventListener('DOMContentLoaded', function () {
         return height;
     }
 
+    function clearRememberedTextareaHeight() {
+        try {
+            window.localStorage.removeItem(heightStorageKey);
+        } catch (error) {
+            /* ignore */
+        }
+    }
+
     function applyRememberedTextareaHeight(forceExpand) {
-        var saved = clampTextareaHeight(safeLocalGet(heightStorageKey));
-        if (!saved) {
-            return;
-        }
-        if (!forceExpand && form.classList.contains('smartreply-collapsed')) {
-            return;
-        }
-        form.classList.add('smartreply-user-resized');
-        form.style.setProperty('--smartreply-user-height', saved + 'px');
-        textarea.style.height = saved + 'px';
-        lastMeasuredTextareaHeight = saved;
+        // Keep Smart Reply aligned with phpBB's native quick reply: a page reload
+        // must return the textarea to its default size instead of restoring a
+        // previously expanded/resized height.
+        clearRememberedTextareaHeight();
     }
 
     function rememberTextareaHeight() {
@@ -341,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
         lastMeasuredTextareaHeight = currentHeight;
         form.classList.add('smartreply-user-resized');
         form.style.setProperty('--smartreply-user-height', currentHeight + 'px');
-        safeLocalSet(heightStorageKey, String(currentHeight));
         if (!form.classList.contains('smartreply-collapsed')) {
             textarea.style.height = currentHeight + 'px';
         }
@@ -1075,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function collectTopicParticipants() {
         var seen = {};
         var users = [];
-        document.querySelectorAll('.smartreply-trigger, .smartreply-quote-trigger, .smartreply-mention-trigger').forEach(function (button) {
+        document.querySelectorAll('.smartreply-participant-source, .smartreply-trigger, .smartreply-quote-trigger, .smartreply-mention-trigger').forEach(function (button) {
             var username = button.dataset && button.dataset.username ? String(button.dataset.username).trim() : '';
             var color = button.dataset && button.dataset.userColour ? normalizeUserColour(button.dataset.userColour) : '';
             var key = username.toLowerCase();

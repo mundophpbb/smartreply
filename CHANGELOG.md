@@ -1,5 +1,12 @@
 # Changelog — Smart Reply
 
+## 1.17.8 - 2026-05-06
+
+- Added an ACP option to enable or disable the contextual Reply button shown next to posts.
+- Kept contextual Reply, Quick quote, Mention, and post button labels independently configurable.
+- Updated ACP descriptions to warn that disabling the persisted context note means the context is not included in the published post.
+
+
 ## 1.17.7
 - Baseline estável documentada para a etapa atual do quick reply
 - Inclusão de arquivos de apoio para release, atualização e teste rápido

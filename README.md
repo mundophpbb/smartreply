@@ -2,7 +2,7 @@
 
 `mundophpbb/smartreply` is a lightweight extension that enhances phpBB's built-in quick reply with:
 
-- contextual reply buttons on each post
+- optional contextual reply button on each post
 - progressive composer expansion
 - local draft autosave and restore
 - optional lightweight “Replying to …” note
@@ -96,6 +96,18 @@ Supported shortcuts in this version:
 ## Quick quote
 
 Each post can expose a quick quote button. When the user selects text inside a post and clicks the button, Smart Reply inserts a lightweight quote into the composer. If no text is selected, it falls back to the contextual snippet for that post.
+
+## Contextual reply button
+
+The contextual Reply button can now be enabled or disabled separately in the ACP. Disable it if you want Smart Reply to behave only as an enhanced quick reply composer.
+
+When the contextual Reply button is enabled, it is recommended to keep the lightweight “Replying to …” note enabled, especially on long topics, so readers can identify which post is being answered after the message is published.
+
+## New in 1.17.8
+
+- Added ACP option to show or hide the contextual Reply button on posts.
+- Kept Quick quote and Mention buttons independently configurable.
+- Clarified ACP help text for the relationship between contextual replies and the persisted “Replying to …” note.
 
 ## What is new in 1.6.0
 
